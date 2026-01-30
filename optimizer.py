@@ -35,7 +35,8 @@ class AdamW(Optimizer):
 
             # TODO: Clip gradients if max_grad_norm is set
             if group['max_grad_norm'] is not None:
-                raise NotImplementedError()
+                params_with_grad = [p for p in group["params"] if p.grad is not None]
+                torch.nn.utils.clip_grad_norm_(params_with_grad, group['max_grad_norm'])
             
             for p in group["params"]:
                 if p.grad is None:
@@ -44,23 +45,46 @@ class AdamW(Optimizer):
                 if grad.is_sparse:
                     raise RuntimeError("Adam does not support sparse gradients, please consider SparseAdam instead")
 
-                raise NotImplementedError()
-
                 # State should be stored in this dictionary
                 state = self.state[p]
 
                 # TODO: Access hyperparameters from the `group` dictionary
                 alpha = group["lr"]
+                beta1 = group["betas"][0]
+                beta2 = group["betas"][1]
+                eps = group["eps"]
+                weight_decay = group["weight_decay"]
+                correct_bias = group["correct_bias"]
 
                 # TODO: Update first and second moments of the gradients
+                if len(state) == 0:
+                    state['step'] = 0
+                    state['m'] = torch.zeros_like(p.data)
+                    state['v'] = torch.zeros_like(p.data)
+
+                m, v = state['m'], state['v']
+                state['step'] += 1
+                t = state['step']
+
+                m.mul_(beta1).add_(grad, alpha=1 - beta1)
+                v.mul_(beta2).addcmul_(grad, grad, value=1 - beta2)
 
                 # TODO: Bias correction
                 # Please note that we are using the "efficient version" given in Algorithm 2 
                 # https://arxiv.org/pdf/1711.05101
-
-                # TODO: Update parameters
+                if correct_bias:
+                    bias_correction1 = 1 - beta1 ** t
+                    bias_correction2 = 1 - beta2 ** t
+                    step_size = alpha * (bias_correction2 ** 0.5) / bias_correction1
+                else:
+                    step_size = alpha
 
                 # TODO: Add weight decay after the main gradient-based updates.
                 # Please note that the learning rate should be incorporated into this update.
+                if weight_decay != 0.0:
+                    p.data.add_(p.data, alpha=-alpha * weight_decay)
 
+                # TODO: Update parameters
+                p.data.addcdiv_(m, v.sqrt().add_(eps), value=-step_size)
+        
         return loss

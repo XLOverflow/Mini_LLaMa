@@ -41,8 +41,9 @@ class LayerNorm(torch.nn.Module):
         Returns:
             torch.Tensor: The normalized tensor.
         """
-        # todo
-        raise NotImplementedError
+        mean = x.mean(-1, keepdim=True)
+        std = x.std(-1, keepdim=True)
+        return (x - mean) / (std + self.eps)
 
     def forward(self, x):
         """
@@ -105,8 +106,12 @@ class Attention(nn.Module):
         An optimal implementation will compute attention for all heads
         jointly using matrix/tensor operations.
         '''
-        # todo
-        raise NotImplementedError
+        seqlen = query.shape[2]
+        scores = torch.matmul(query, key.transpose(-2, -1)) / (key.shape[-1] ** 0.5)
+        mask = torch.triu(torch.ones(seqlen, seqlen, device=query.device), diagonal=1).bool()
+        scores = scores.masked_fill(mask, float('-inf'))
+        weights = torch.softmax(scores, dim=-1)
+        return torch.matmul(weights, value)
 
 
     def forward(
