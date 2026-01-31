@@ -63,16 +63,29 @@ def train_one_epoch(model, loader, optimizer, device):
     Another Hint: 
         token id for "=" is 12. 
     """
-    # # todo
-    # model.train()
-    # total_loss = 0
-    # n_batches = 0
-    # for ...
+    model.train()
+    total_loss = 0
+    n_batches = 0
+    for batch in loader:
+        x, y = batch
+        x, y = x.to(device), y.to(device)
 
-    # return total_loss / n_batches
+        y = y.clone()
+        eq_cumsum = (y == 12).int().cumsum(dim=-1)
+        y[eq_cumsum == 0] = -1
+        y[y == 12] = -1
 
-    raise NotImplementedError
+        logits, _ = model(x, y)
+        loss = F.cross_entropy(logits.view(-1, logits.shape[-1]), y.view(-1), ignore_index=-1)
 
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        total_loss += loss.item()
+        n_batches += 1
+
+    return total_loss / n_batches
 
 @torch.no_grad()
 def evaluate_loss(model, loader, device):
@@ -95,16 +108,25 @@ def evaluate_loss(model, loader, device):
     Another Hint: 
         token id for "=" is 12. 
     """
-    # todo
-    # model.eval()
-    # total_loss = 0
-    # n_batches = 0
-    # for ...
+    model.eval()
+    total_loss = 0
+    n_batches = 0
+    for batch in loader:
+        x, y = batch
+        x, y = x.to(device), y.to(device)
 
-    # return total_loss / n_batches
+        y = y.clone()
+        eq_cumsum = (y == 12).int().cumsum(dim=-1)
+        y[eq_cumsum == 0] = -1
+        y[y == 12] = -1
 
-    raise NotImplementedError
+        logits, _ = model(x, y)
+        loss = F.cross_entropy(logits.view(-1, logits.size(-1)), y.view(-1), ignore_index=-1)
 
+        total_loss += loss.item()
+        n_batches += 1
+
+    return total_loss / n_batches
 
 
 # ----- Saving Checkpoints and Plots -----

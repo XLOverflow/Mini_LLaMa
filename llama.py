@@ -42,8 +42,8 @@ class LayerNorm(torch.nn.Module):
             torch.Tensor: The normalized tensor.
         """
         mean = x.mean(-1, keepdim=True)
-        std = x.std(-1, keepdim=True)
-        return (x - mean) / (std + self.eps)
+        var = ((x - mean) ** 2).mean(-1, keepdim=True)
+        return (x - mean) / torch.sqrt(var + self.eps)
 
     def forward(self, x):
         """
@@ -215,8 +215,9 @@ class LlamaLayer(nn.Module):
         5) add a residual connection from the unnormalized self-attention output to the
            output of the feed-forward network
         '''
-        # todo
-        raise NotImplementedError
+        h = x + self.attention(self.attention_norm(x))
+        h = h + self.feed_forward(self.ffn_norm(h))
+        return h
 
 class Llama(LlamaPreTrainedModel):
     def __init__(self, config: LlamaConfig):
@@ -306,11 +307,17 @@ class Llama(LlamaPreTrainedModel):
                 6) Renormalize the remaining probabilities so they sum to 1.
                 7) Sample from this filtered probability distribution.
                 '''
-                # todo 
-
-                raise NotImplementedError
+                probs = F.softmax(logits / temperature, dim=-1)
+                sorted_probs, sorted_indices = torch.sort(probs, descending=True, dim=-1)
+                cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
+                sorted_indices_to_remove = (cumulative_probs - sorted_probs) >= top_p
+                sorted_indices_to_remove[:, 0] = 0 
+                indices_to_remove = sorted_indices_to_remove.scatter(1, sorted_indices, sorted_indices_to_remove)
+                probs = probs.masked_fill(indices_to_remove, 0.0)
+                probs = probs / probs.sum(dim=-1, keepdim=True)  # renormalize
+                
                 # map to original vocab indices
-                idx_next = None
+                idx_next = torch.multinomial(probs, num_samples=1)
             
             # append sampled index to the running sequence and continue
             idx = torch.cat((idx, idx_next), dim=1)
@@ -329,7 +336,7 @@ def load_pretrained(checkpoint):
   ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=device_type, dtype=ptdtype)
 
   # init from a model saved in a specific directory
-  checkpoint_dict = torch.load(checkpoint, map_location=device)
+  checkpoint_dict = torch.load(checkpoint, map_location=device, weights_only=True)
   config = LlamaConfig(**checkpoint_dict['model_args'])
   model = Llama(config)
   state_dict = checkpoint_dict['model']
