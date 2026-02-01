@@ -14,15 +14,17 @@ def generate_addition_data(n):
     4) Repeat until n unique examples are collected
     5) Return the data formatted as strings of the form "a+b=c"
     """
-    data = set()
+    data = []
+    record = set()
     while len(data) < n:
         a = random.randint(1000, 9999)
         b = random.randint(1000, 9999)
-        pair = tuple(sorted((a, b)))
-        if pair not in data:
-            c = a + b
-            data.add(pair)
-    return [f"{a}+{b}={a+b}" for a, b in data]
+        x, y = (a, b) if a <= b else (b, a)
+        if (x, y) in record:
+            continue
+        record.add((x, y))
+        data.append(f"{a}+{b}={a+b}")
+    return data
 
 def generate_dataset(n, filename, save_dir="data"):
     data = generate_addition_data(n)
