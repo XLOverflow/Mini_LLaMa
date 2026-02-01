@@ -67,3 +67,7 @@ Thumbs.db
 
 # Conda
 .conda/
+
+addition_models/
+
+*.zip
