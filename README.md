@@ -18,7 +18,7 @@ In this assignment, you will implement important components of the Llama2 model 
 
 You are responsible for implementing core components of Llama2 in the following files:
 - `llama.py` - Main model architecture
-- `classifier.py` - Classification head
+<!--- `classifier.py` - Classification head-->
 - `optimizer.py` - AdamW optimizer  
 - `rope.py` - Rotary position embeddings
 
@@ -67,15 +67,15 @@ You should see continuations of the sentence `I have wanted to see this thriller
 ```bash
 python run_llama.py --option prompt --batch_size 10 --train data/sst-train.txt --dev data/sst-dev.txt --test data/sst-test.txt --label-names data/sst-label-mapping.json --dev_out sst-dev-prompting-output.txt --test_out sst-test-prompting-output.txt [--use_gpu]
 ```
-- Dev Accuracy: 0.237 (0.000)
-- Test Accuracy: 0.250 (0.000)
+- Dev Accuracy: 0.197 (0.000)
+- Test Accuracy: 0.176 (0.000)
 
 **CFIMDB Dataset:**
 ```bash
 python run_llama.py --option prompt --batch_size 10 --train data/cfimdb-train.txt --dev data/cfimdb-dev.txt --test data/cfimdb-test.txt --label-names data/cfimdb-label-mapping.json --dev_out cfimdb-dev-prompting-output.txt --test_out cfimdb-test-prompting-output.txt [--use_gpu]
 ```
-- Dev Accuracy: 0.490 (0.000)
-- Test Accuracy: 0.109 (0.000)
+- Dev Accuracy: 0.514 (0.000)
+- Test Accuracy: 0.232 (0.000)
 
 ### Addition Llama
 Before running the following commands, ensure that your model capacity does not exceed 5,808,844,800,000 (see train command below).
@@ -116,8 +116,6 @@ ANDREWID/
 ├── base_llama.py
 ├── llama.py
 ├── rope.py
-├── lora.py
-├── classifier.py
 ├── config.py
 ├── optimizer.py
 ├── sanity_check.py
@@ -150,9 +148,9 @@ ANDREWID/
 
 ### Grading
 
-* **A+**: (Tiniest Addition LLaMA) The A+ grade is reserved for the top 5% of students who explore the boundaries of training and demonstrate a strong understanding of model capacity through systematic experimentation. You must perform multiple ablation studies and use them to identify the tiniest LLaMA architecture that achieves 100% accuracy on the training set, while remaining within the specified model capacity constraint. You are required to submit at least 5 different ablations, as well as your best-performing (smallest) model, with each experiment saved in a separate directory as instructed. Ensure that all experiments are executable using the provided commands. You must plot the results of all experiments and save training logs for each run. Submissions that do not include the required ablations, plots, and logs will not be eligible for an A+.
+* **A+**: (Tiniest Addition LLaMA) The A+ grade is reserved for the top 5% of students who explore the boundaries of training and demonstrate a strong understanding of model capacity through systematic experimentation. You must perform multiple ablation studies and use them to identify the tiniest LLaMA architecture that achieves 100% accuracy on the test set, while remaining within the specified model capacity constraint. You are required to submit at least 5 different ablations, as well as your best-performing (smallest) model, with each experiment saved in a separate directory as instructed. Ensure that all experiments are executable using the provided commands. You must plot the results of all experiments and save training logs for each run. Submissions that do not include the required ablations, plots, and logs will not be eligible for an A+.
 
-* **A**: You correctly implement all required components in: `llama.py`, `classifier.py`, `optimizer.py`, `rope.py`, `addition_data_generation.py` and `addition_run.py`. Your implementation passes the provided sanity checks and produces: Coherent, grammatical text generation Correct execution of zero-shot prompting on SST-5 and CFIMDB A working addition LLaMA that successfully trains, evaluates, and achieves 100% accuracy on the test set. 
+* **A**: You correctly implement all required components in: `llama.py`, <!--`classifier.py`-->, `optimizer.py`, `rope.py`, `addition_data_generation.py` and `addition_run.py`. Your implementation passes the provided sanity checks and produces: Coherent, grammatical text generation Correct execution of zero-shot prompting on SST-5 and CFIMDB A working addition LLaMA that successfully trains, evaluates, and achieves 100% accuracy on the test set. 
 
 * **A-**: All required components are implemented and executable, but one or more of the following issues occur: Generated text is not coherent or not grammatically well-formed Zero-shot prompting or addition training runs but produces clearly incorrect or unstable results. The model fails to meaningfully learn the addition task. The pipeline runs end-to-end, but outputs do not meet expected qualitative or quantitative behavior.
 
